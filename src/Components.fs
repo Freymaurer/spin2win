@@ -1,8 +1,16 @@
 ﻿namespace App
 
+open Fable.Core
 open Feliz
 open Feliz.Router
 open Feliz.DaisyUI
+
+type private Section = {
+  startX: float
+  startY: float
+  endX: float
+  endY: float
+}
 
 type private Page =
 | Spin2Win
@@ -56,28 +64,56 @@ module private Helper =
     | Page.About -> [|PageLiterals.About|]
     | Page.NotFound -> [|PageLiterals.NotFound|]
 
+open Fable.Core.JsInterop
+open System
+
 type private Wheel =
     [<ReactComponent>]
     static member Wheel(roles: Role list, users: string list) =
+      let (canvas: Fable.React.IRefValue<Browser.Types.HTMLElement option>) = React.useRef(None)
+      let (sections: Section list), setSections = React.useState([])
+      React.useLayoutEffect((fun _ -> 
+          if canvas.current.IsSome then
+            let numSections = float roles.Length
+            let canvas = canvas.current.Value
+            let ctx: Browser.Types.CanvasRenderingContext2D = canvas?getContext("2d")
+            let centerX: float = canvas?width / 2.;
+            let centerY: float = canvas?height / 2.;
+            let radius = System.Math.Min(centerX, centerY);
+            ctx.clearRect(0.,0.,canvas?width, canvas?height)
+            for i in 0. .. ( numSections - 1.) do
+              let role = List.item (int i) roles 
+              let startAngle = (2. * System.Math.PI / numSections) * i - System.Math.PI / 2.;
+              let endAngle = (2. * System.Math.PI / numSections) * (i + 1.) - System.Math.PI / 2.
+              ctx.beginPath()
+              ctx.moveTo(centerX,centerY)
+              ctx.arc(centerX,centerY,radius,startAngle,endAngle)
+              ctx.fillStyle <- U3.Case1 <| role.ToColor()
+              ctx.fill()
+              // text
+              let textAngle = (startAngle + endAngle) / 2.
+              let textRadius = radius / 1.5
+              let textX = centerX + Math.Cos(textAngle) * textRadius
+              let textY = centerX + Math.Sin(textAngle) * textRadius
+              ctx.fillStyle <- U3.Case1 "#fff"
+              ctx.font <- "14px Arial"
+              ctx.textAlign <- "center"
+              ctx.textBaseline <- "middle"
+              ctx.fillText(role.ToString(), textX, textY)
+              ctx.closePath()
+            log (centerX,centerY)
+          
+        ),
+        [|box roles|]
+      )
       Html.div [
         prop.className "wheel-container"
         prop.children [
-          Html.div [prop.className "wheel-center"; prop.text "spin"]
-          Html.div [
-            prop.className "wheel"
-            prop.style [style.custom("--n", roles.Length)]
-            prop.children [
-              for i in 1 .. roles.Length do
-                let role = List.item (i-1) roles
-                Html.div [
-                  prop.className "wheel-element"
-                  prop.style [
-                    style.custom("--i",i)
-                    style.custom("--clr",role.ToColor())
-                  ]
-                  prop.children [Html.span (string role)]
-                ]
-            ]
+          // Html.div [prop.className "wheel-center"; prop.text "spin"]
+          Html.canvas [
+            prop.ref canvas
+            prop.width 500
+            prop.height 500
           ]
         ]
       ]
