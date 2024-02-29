@@ -3,6 +3,10 @@
         <TargetFramework>net7.0</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
+        <Compile Include="Helper.fs" />
+        <Compile Include="Routing.fs" />
+        <Compile Include="Model.fs" />
+        <Compile Include="WheelPie.fs" />
         <None Include="index.html" />
         <Compile Include="Extensions.fs" />
         <Compile Include="Components.fs" />
@@ -11,6 +15,7 @@
     <ItemGroup>
         <PackageReference Include="Feliz.DaisyUI" Version="4.2.0" />
         <PackageReference Include="Feliz" Version="2.7.0" />
+        <PackageReference Include="Feliz.Recharts" Version="4.2.0" />
         <PackageReference Include="Feliz.Router" Version="4.0.0" />
     </ItemGroup>
 </Project>

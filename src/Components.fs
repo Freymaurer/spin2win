@@ -4,119 +4,12 @@ open Fable.Core
 open Feliz
 open Feliz.Router
 open Feliz.DaisyUI
-
-type private Section = {
-  startX: float
-  startY: float
-  endX: float
-  endY: float
-}
-
-type private Page =
-| Spin2Win
-| About
-| NotFound
-
-type private Role =
-| ADC
-| Jungle
-| Top
-| Mid
-| Support
-| Custom of string
-  static member fromString = function
-    | "ADC"     -> ADC
-    | "Jungle"  -> Jungle
-    | "Top"     -> Top
-    | "Mid"     -> Mid
-    | "Support" -> Support
-    | anyElse -> Custom anyElse
-  static member Default() = [Top; Jungle; Mid; ADC; Support]
-  member this.ToColor() =
-    match this with
-    | ADC         -> "crimson"
-    | Jungle      -> "darkgreen"
-    | Top         -> "orchid"
-    | Mid         -> "dodgerblue"
-    | Support     -> "gold"
-    | Custom cus  -> "ivory"
-
-[<AutoOpen>]
-module private Helper = 
-
-  module PageLiterals =
-    let [<Literal>] About = "about"
-    let [<Literal>] NotFound = "not_found"
-
-  let log = fun o -> Browser.Dom.console.log o
-
-  let parseUrl = function
-      // matches #/ or #
-      | [ ] ->  Page.Spin2Win
-      // matches #/users or #/users/ or #users
-      | [ PageLiterals.About ] -> Page.About
-      // matches #/users/{userId}
-      // matches everything else
-      | _ -> NotFound
-
-  let buildUrlSegments = function
-    | Page.Spin2Win -> [||]
-    | Page.About -> [|PageLiterals.About|]
-    | Page.NotFound -> [|PageLiterals.NotFound|]
-
+open Model
+open Routing
 open Fable.Core.JsInterop
 open System
 
 type private Wheel =
-    [<ReactComponent>]
-    static member Wheel(roles: Role list, users: string list) =
-      let (canvas: Fable.React.IRefValue<Browser.Types.HTMLElement option>) = React.useRef(None)
-      let (sections: Section list), setSections = React.useState([])
-      React.useLayoutEffect((fun _ -> 
-          if canvas.current.IsSome then
-            let numSections = float roles.Length
-            let canvas = canvas.current.Value
-            let ctx: Browser.Types.CanvasRenderingContext2D = canvas?getContext("2d")
-            let centerX: float = canvas?width / 2.;
-            let centerY: float = canvas?height / 2.;
-            let radius = System.Math.Min(centerX, centerY);
-            ctx.clearRect(0.,0.,canvas?width, canvas?height)
-            for i in 0. .. ( numSections - 1.) do
-              let role = List.item (int i) roles 
-              let startAngle = (2. * System.Math.PI / numSections) * i - System.Math.PI / 2.;
-              let endAngle = (2. * System.Math.PI / numSections) * (i + 1.) - System.Math.PI / 2.
-              ctx.beginPath()
-              ctx.moveTo(centerX,centerY)
-              ctx.arc(centerX,centerY,radius,startAngle,endAngle)
-              ctx.fillStyle <- U3.Case1 <| role.ToColor()
-              ctx.fill()
-              // text
-              let textAngle = (startAngle + endAngle) / 2.
-              let textRadius = radius / 1.5
-              let textX = centerX + Math.Cos(textAngle) * textRadius
-              let textY = centerX + Math.Sin(textAngle) * textRadius
-              ctx.fillStyle <- U3.Case1 "#fff"
-              ctx.font <- "14px Arial"
-              ctx.textAlign <- "center"
-              ctx.textBaseline <- "middle"
-              ctx.fillText(role.ToString(), textX, textY)
-              ctx.closePath()
-            log (centerX,centerY)
-          
-        ),
-        [|box roles|]
-      )
-      Html.div [
-        prop.className "wheel-container"
-        prop.children [
-          // Html.div [prop.className "wheel-center"; prop.text "spin"]
-          Html.canvas [
-            prop.ref canvas
-            prop.width 500
-            prop.height 500
-          ]
-        ]
-      ]
 
     [<ReactComponent>]
     static member InputAddUser(addUser: string -> unit) =
@@ -160,6 +53,7 @@ type private Wheel =
       let add (role: Role) = role::roles |> setRoles
       let rmv (role: Role) = roles |> List.except [role] |> setRoles 
       Daisy.dropdown [
+        prop.style [style.zIndex 2]
         dropdown.hover
         prop.children [
             Daisy.button.button [
@@ -180,7 +74,7 @@ type private Wheel =
     ]
 
     static member Main() =
-      let (roles: Role list), setRoles= React.useState(Role.Default)
+      let (roles: Role list), setRoles= React.useState(Role.Default())
       let (users: string list), setUsers = React.useState([])
       Html.div [
         prop.className "size-full flex flex-col items-center gap-4"
@@ -192,7 +86,13 @@ type private Wheel =
               Wheel.RoleSelect(roles, setRoles)
             ]
           ]
-          Wheel.Wheel(roles, users)
+          Html.div [
+            prop.className "glass"
+            prop.style [style.width (length.perc 100); style.height 500;]
+            prop.children [
+                Components.Wheel.Main(roles, users)
+            ]
+          ]
         ]
       ]
 
@@ -225,9 +125,9 @@ type Components =
     /// </summary>
     [<ReactComponent>]
     static member Router() =
-        let (currentUrl, updateUrl) = React.useState(Helper.parseUrl(Router.currentUrl()))
+        let (currentUrl, updateUrl) = React.useState(parseUrl(Router.currentUrl()))
         React.router [
-            router.onUrlChanged (Helper.parseUrl >> updateUrl)
+            router.onUrlChanged (parseUrl >> updateUrl)
             router.children [
                 Html.div [
                   prop.className "h-screen flex flex-col"
@@ -273,7 +173,7 @@ type Components =
       Daisy.button.button [
         button.ghost
         prop.text name
-        prop.onClick (fun _ -> (Helper.buildUrlSegments >> Router.navigate) targetPage )
+        prop.onClick (fun _ -> (buildUrlSegments >> Router.navigate) targetPage )
       ]
 
     [<ReactComponent>]
