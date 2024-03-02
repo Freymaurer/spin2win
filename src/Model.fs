@@ -23,16 +23,4 @@ type Role =
     | ADC         -> "oklch(var(--p))"
     | Support     -> "oklch(var(--er))"
     | Custom cus  -> "#00C49F"
-
-    /// <summary>
-    /// This function is only used for development and provides default user names for ui testing.
-    /// </summary>
-    member this.ToUserName() =
-        match this with
-        | Top         -> "Patrick"
-        | Jungle      -> "Kevin"
-        | Mid         -> "Lena"
-        | ADC         -> "Chris"
-        | Support     -> "Anne/Caro"
-        | Custom cus  -> "#00C49F"
         

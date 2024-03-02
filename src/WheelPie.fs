@@ -142,7 +142,7 @@ type Wheel =
                             pie.innerRadius.percentage 30.
                             pie.paddingAngle 5
                             if showUsers then pie.activeIndex activeIndices
-                            pie.onAnimationEnd (fun _ -> setShowUsers true; log "End")
+                            pie.onAnimationEnd (fun _ -> setShowUsers true)
                             pie.activeShape (Helper.renderActiveShape getUseRyRole)
                             pie.children [
                                 Recharts.labelList [

@@ -12,25 +12,14 @@ open System
 type private Wheel =
 
     [<ReactComponent>]
-    static member InputAddUser(addUser: string -> unit) =
-      let state, setState = React.useState("")
-      let reset() = setState ""
-      let addUser = fun s -> addUser s; reset()
+    static member InputUserName(user: string, setUser: string -> unit) =
       Daisy.formControl [
-        Html.div [
-            prop.className "relative"
-            prop.children [
-                Daisy.input [
-                  input.bordered; input.secondary; prop.placeholder "new user"; prop.valueOrDefault state; 
-                  prop.onChange(fun (s: string) -> setState s); 
-                  prop.onKeyDown(key.enter, fun _ -> addUser state)
-                ]
-                Daisy.button.button [
-                    button.secondary
-                    prop.className "absolute top-0 right-0 rounded-l-none"
-                    prop.text "+"
-                    prop.onClick (fun _ -> addUser state;)
-                ]
+        prop.className "grow"
+        prop.children [
+            Daisy.input [
+                prop.className "grow"
+                input.bordered; input.secondary; prop.placeholder "new user"; prop.valueOrDefault user; 
+                prop.onChange(fun (s: string) -> setUser s); 
             ]
         ]
     ]
@@ -48,16 +37,22 @@ type private Wheel =
             ]
           ]
       ]
-    static member RoleSelect(roles, setRoles) =
+    static member RoleSelect(roles, setRoles, users: string list, setUsers) =
       let isActive (roles: Role list) (role: Role) = List.contains role roles
-      let add (role: Role) = role::roles |> setRoles
-      let rmv (role: Role) = roles |> List.except [role] |> setRoles 
+      let add (role: Role) = 
+        role::roles |> setRoles
+        ""::users |> setUsers
+      let rmv (role: Role) = 
+        let i = roles |> List.findIndex (fun r -> r = role)
+        roles |> List.removeAt i |> setRoles
+        users |> List.removeAt i |> setUsers
       Daisy.dropdown [
         prop.style [style.zIndex 2]
         dropdown.hover
         prop.children [
             Daisy.button.button [
                 button.secondary
+                button.wide
                 prop.text "Roles"
             ]
             Daisy.dropdownContent [
@@ -73,21 +68,26 @@ type private Wheel =
         ]
     ]
 
+    [<ReactComponent>]
     static member Main() =
-      let (roles: Role list), setRoles= React.useState(Role.Default())
-      let (users: string list), setUsers = React.useState([])
+      let (roles: Role list), setRoles = React.useState(Role.Default())
+      let (users: string list), setUsers = React.useState([for _ in roles do yield ""])
       Html.div [
-        prop.className "size-full flex flex-col items-center gap-4"
+        prop.className "size-full flex flex-col items-center gap-4 lg:flex-row"
         prop.children [
           Html.div [
-            prop.className "flex flex-row gap-2"
+            prop.className "flex-grow card gap-2 flex"
             prop.children [
-              Wheel.InputAddUser(fun s -> s::users |> setUsers)
-              Wheel.RoleSelect(roles, setRoles)
+              Wheel.RoleSelect(roles, setRoles, users, setUsers)
+              for i in 0 .. (users.Length-1) do
+                let user = users.[i]
+                let setUser = fun s -> users |> List.mapi (fun li u -> if li = i then s else u) |> setUsers
+                Wheel.InputUserName(user, setUser)
             ]
           ]
+          //Daisy.divider [prop.className "lg:divider-horizontal"]
           Html.div [
-            prop.className "glass"
+            prop.className "glass grid flex-grow card rounded-box place-items-center"
             prop.style [style.width (length.perc 100); style.height 500;]
             prop.children [
                 Components.Wheel.Main(roles, users)
