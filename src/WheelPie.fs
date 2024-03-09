@@ -59,65 +59,71 @@ module private Helper =
         let ex = mx + (if cos >= 0. then 1. else -1.) * 22.;
         let ey = my;
         let textAnchor = if cos >= 0 then svg.textAnchor.startOfText else svg.textAnchor.endOfText;
-        Svg.g [
-            Svg.text [
-                svg.x cx; svg.y cy; svg.textAnchor.middle; svg.fill fill
+        let fill = Color.Gold
+        let name = (getUseRyRole props?name)
+        if name = "" then 
+            Svg.g [] 
+        else
+            Svg.g [
+                Svg.text [
+                    svg.x cx; svg.y cy; svg.textAnchor.middle; svg.fill fill
+                ]
+                //Recharts.sector [
+                //    sector.cx cx
+                //    sector.cy cy
+                //    sector.innerRadius innerRadius
+                //    sector.outerRadius outerRadius
+                //    sector.startAngle startAngle
+                //    sector.endAngle endAngle
+                //    sector.fill "white"
+                //]
+                //Recharts.sector [
+                //    sector.cx cx
+                //    sector.cy cy
+                //    sector.innerRadius (innerRadius + 6.)
+                //    sector.outerRadius (outerRadius + 10.)
+                //    sector.startAngle startAngle
+                //    sector.endAngle endAngle
+                //    sector.fill fill
+                //]
+                //<path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+                Svg.path [
+                    svg.d (sprintf "M%i,%iL%i,%iL%i,%i" (int sx) (int sy) (int mx) (int my) (int ex) (int ey))
+                    svg.stroke fill
+                    svg.fill "none"
+                ]
+                //<circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+                Svg.circle [
+                    svg.cx ex
+                    svg.cy ey
+                    svg.r 2
+                    svg.fill fill
+                    svg.stroke "none" 
+                ]
+                //<text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333">{`PV ${value}`}</text>
+                Svg.text [
+                    svg.x (ex + (if cos >= 0. then 1. else -1.) * 12.)
+                    svg.y ey
+                    textAnchor
+                    svg.fill Color.Gold
+                    svg.fontSize 30
+                    svg.text (getUseRyRole props?name)
+                ]
             ]
-            Recharts.sector [
-                sector.cx cx
-                sector.cy cy
-                sector.innerRadius innerRadius
-                sector.outerRadius outerRadius
-                sector.startAngle startAngle
-                sector.endAngle endAngle
-                sector.fill fill
-            ]
-            Recharts.sector [
-                sector.cx cx
-                sector.cy cy
-                sector.innerRadius (innerRadius + 6.)
-                sector.outerRadius (outerRadius + 10.)
-                sector.startAngle startAngle
-                sector.endAngle endAngle
-                sector.fill fill
-            ]
-            //<path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
-            Svg.path [
-                svg.d (sprintf "M%i,%iL%i,%iL%i,%i" (int sx) (int sy) (int mx) (int my) (int ex) (int ey))
-                svg.stroke fill
-                svg.fill "none"
-            ]
-            //<circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-            Svg.circle [
-               svg.cx ex
-               svg.cy ey
-               svg.r 2
-               svg.fill fill
-               svg.stroke "none" 
-            ]
-            //<text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333">{`PV ${value}`}</text>
-            Svg.text [
-              svg.x (ex + (if cos >= 0. then 1. else -1.) * 12.)
-              svg.y ey
-              textAnchor
-              svg.fill "#333"
-              svg.text (getUseRyRole props?name)
-            ]
-        ]
 
 
 type Wheel =
 
     [<ReactComponent>]
     static member Main(roles: Role list, users: string list) =
-        let showUsers, setShowUsers = React.useState(false)
+        let animation, setAnimation = React.useState(true)
+        React.useEffect((fun () -> setAnimation true), [|box roles|])
         let data0 = 
             let n = roles.Length
             let v = 100 / n
             let c = fun (n: Role) -> Data.create(string n,v)
             List.map c roles
-        let activeIndices = [0 .. users.Length-1]
-        let getUseRyRole = fun (roleStr: string) ->
+        let getUserByRole = fun (roleStr: string) ->
           let role = Role.fromString roleStr
           let index = List.tryFindIndex (fun x -> x = role) roles
           match index with
@@ -131,34 +137,32 @@ type Wheel =
                 Recharts.pieChart [
                     pieChart.height 500
                     pieChart.width 500
-                    // pieChart.data data0
                     pieChart.children [
                         Recharts.pie [
                             pie.data data0
                             pie.fill "#8884d8"
                             pie.dataKey (fun (data: Data) -> data.value)
                             pie.labelLine false
-                            pie.outerRadius.percentage 80.
+                            pie.outerRadius.percentage 90.
                             pie.innerRadius.percentage 30.
                             pie.paddingAngle 5
-                            if showUsers then pie.activeIndex activeIndices
-                            pie.onAnimationEnd (fun _ -> setShowUsers true)
-                            pie.activeShape (Helper.renderActiveShape getUseRyRole)
+                            pie.isAnimationActive animation
+                            pie.onAnimationEnd (fun _ -> setAnimation false)
+                            pie.label (fun c -> Helper.renderActiveShape getUserByRole c)
                             pie.children [
                                 Recharts.labelList [
                                     labelList.dataKey (fun (data:Data) -> data.name)
                                     labelList.position.right
+                                    labelList.style [style.letterSpacing 5; style.textTransform.uppercase]
                                 ]
                                 for i in 0 .. data0.Length-1 do
-                                    let role = List.item i roles
-                                    let color = role.ToColor()
                                     Recharts.cell [
                                         cell.key (string i)
-                                        cell.fill (color)
+                                        cell.fill (Color.Dark)
+                                        cell.stroke (Color.Gold)
                                     ]
                             ]
                         ]
-                        Recharts.tooltip []
                     ]
                 ]
         ]

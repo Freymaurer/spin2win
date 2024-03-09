@@ -10,6 +10,13 @@ module.exports = {
   },
   plugins: [require("daisyui")],
   daisyui: {
-    themes: ["light", "dark", "lofi"],
+      themes: [
+          "light", "dark", "lofi",
+          {
+              MyTheme: {
+                  "primary": "#87642C"
+              }
+          }
+      ],
   },
 }

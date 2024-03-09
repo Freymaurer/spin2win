@@ -3,6 +3,7 @@
         <TargetFramework>net7.0</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
+        <Compile Include="Color.fs" />
         <Compile Include="Helper.fs" />
         <Compile Include="Routing.fs" />
         <Compile Include="Model.fs" />

@@ -69,6 +69,16 @@ type private Wheel =
     ]
 
     [<ReactComponent>]
+    static member SpinButton() =
+        Daisy.button.button [
+            prop.style [style.position.absolute; style.top (length.perc 50); style.left (length.perc 50); style.transform.translate (length.perc -50, length.perc -50)]
+            button.circle
+            button.lg
+            button.primary
+            prop.text "SPIN"
+        ]
+
+    [<ReactComponent>]
     static member Main() =
       let (roles: Role list), setRoles = React.useState(Role.Default())
       let (users: string list), setUsers = React.useState([for _ in roles do yield ""])
@@ -87,10 +97,11 @@ type private Wheel =
           ]
           //Daisy.divider [prop.className "lg:divider-horizontal"]
           Html.div [
-            prop.className "glass grid flex-grow card rounded-box place-items-center"
-            prop.style [style.width (length.perc 100); style.height 500;]
+            prop.className "grid flex-grow card rounded-box place-items-center"
+            prop.style [style.width (length.perc 100); style.height 500; style.position.relative]
             prop.children [
                 Components.Wheel.Main(roles, users)
+                Wheel.SpinButton()
             ]
           ]
         ]
@@ -131,14 +142,15 @@ type Components =
             router.children [
                 Html.div [
                   prop.className "h-screen flex flex-col"
-                  // theme.dark
                   prop.children [
+                    Html.div [ prop.style [style.position.fixedRelativeToWindow; style.left 0; style.right 0; style.top 0; style.bottom 0; style.backgroundImageUrl "./img/bc1.png"; style.backgroundRepeat.noRepeat; style.backgroundSize.cover; style.zIndex -1]]
+                    Html.div [ prop.style [style.position.fixedRelativeToWindow; style.left 0; style.right 0; style.top 0; style.bottom 0; style.custom ("background", "linear-gradient(45deg, #0B1C38, #000, #0B1C38)"); style.opacity 0.8; style.zIndex -1] ]
                     Components.Navbar()
                     Components.ContentContainer [
-                      match currentUrl with
-                      | Page.Spin2Win -> Wheel.Main()
-                      | Page.About -> Components.Counter()
-                      | Page.NotFound -> Html.h1 "Not found"
+                        match currentUrl with
+                        | Page.Spin2Win -> Wheel.Main()
+                        | Page.About -> Components.Counter()
+                        | Page.NotFound -> Html.h1 "Not found"
                     ]
                     Components.Footer()
                   ]
@@ -149,7 +161,6 @@ type Components =
     static member ContentContainer (content: ReactElement list): Fable.React.ReactElement =
         Daisy.hero [
             prop.className "size-full"
-            prop.style [style.backgroundImageUrl "https://picsum.photos/id/1005/1600/1400"]
             prop.children [
                 Daisy.heroContent [
                     prop.className "text-center text-neutral-content flex flex-auto size-full"
@@ -184,12 +195,12 @@ type Components =
             Components.NavbarNavItem("Spin2Win", Page.Spin2Win)
             Components.NavbarNavItem("About", Page.About)
           ]
-          Daisy.navbarCenter [Html.span "With two icons"]
+          //Daisy.navbarCenter [Html.span "With two icons"]
           Daisy.navbarEnd [
-            Daisy.toggle [
-                theme.controller
-                prop.value "light"
-            ]
+            //Daisy.toggle [
+            //    theme.controller
+            //    prop.value "light"
+            //]
           ]
         ]
       ]
