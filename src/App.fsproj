@@ -1,22 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-    </PropertyGroup>
-    <ItemGroup>
-        <Compile Include="Color.fs" />
-        <Compile Include="Helper.fs" />
-        <Compile Include="Routing.fs" />
-        <Compile Include="Model.fs" />
-        <Compile Include="WheelPie.fs" />
-        <None Include="index.html" />
-        <Compile Include="Extensions.fs" />
-        <Compile Include="Components.fs" />
-        <Compile Include="Main.fs" />
-    </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="Feliz.DaisyUI" Version="4.2.0" />
-        <PackageReference Include="Feliz" Version="2.7.0" />
-        <PackageReference Include="Feliz.Recharts" Version="4.2.0" />
-        <PackageReference Include="Feliz.Router" Version="4.0.0" />
-    </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Color.fs" />
+    <Compile Include="Helper.fs" />
+    <Compile Include="Routing.fs" />
+    <Compile Include="Model.fs" />
+    <Compile Include="LocalStorage.fs" />
+    <Compile Include="Randomizer.fs" />
+    <Compile Include="WheelPie.fs" />
+    <None Include="index.html" />
+    <Compile Include="Extensions.fs" />
+    <Compile Include="Components.fs" />
+    <Compile Include="Main.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Fable.SimpleJson" Version="3.24.0" />
+    <PackageReference Include="Feliz.DaisyUI" Version="4.2.0" />
+    <PackageReference Include="Feliz" Version="2.7.0" />
+    <PackageReference Include="Feliz.Recharts" Version="4.2.0" />
+    <PackageReference Include="Feliz.Router" Version="4.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.200" />
+  </ItemGroup>
 </Project>

@@ -6,8 +6,6 @@ open Feliz.Router
 open Feliz.DaisyUI
 open Model
 open Routing
-open Fable.Core.JsInterop
-open System
 
 type private Wheel =
 
@@ -37,6 +35,7 @@ type private Wheel =
             ]
           ]
       ]
+
     static member RoleSelect(roles, setRoles, users: string list, setUsers) =
       let isActive (roles: Role list) (role: Role) = List.contains role roles
       let add (role: Role) = 
@@ -69,19 +68,29 @@ type private Wheel =
     ]
 
     [<ReactComponent>]
-    static member SpinButton() =
+    static member SpinButton(spin: unit -> unit) =
         Daisy.button.button [
             prop.style [style.position.absolute; style.top (length.perc 50); style.left (length.perc 50); style.transform.translate (length.perc -50, length.perc -50)]
             button.circle
             button.lg
             button.primary
             prop.text "SPIN"
+            prop.onClick(fun _ -> spin())
         ]
 
     [<ReactComponent>]
     static member Main() =
-      let (roles: Role list), setRoles = React.useState(Role.Default())
-      let (users: string list), setUsers = React.useState([for _ in roles do yield ""])
+      let (roles: Role list), setRoles = React.useState(LocalStorage.Role.read)
+      let (users: string list), setUsers = React.useState(LocalStorage.Users.read (roles.Length))
+      let setRoles = fun roles ->
+        LocalStorage.Role.write roles
+        setRoles roles
+      let setUsers = fun users ->
+        LocalStorage.Users.write users
+        setUsers users
+      let spin users = 
+        let nextUsers = Randomizer.randomize users
+        setUsers nextUsers
       Html.div [
         prop.className "size-full flex flex-col items-center gap-4 lg:flex-row"
         prop.children [
@@ -101,7 +110,7 @@ type private Wheel =
             prop.style [style.width (length.perc 100); style.height 500; style.position.relative]
             prop.children [
                 Components.Wheel.Main(roles, users)
-                Wheel.SpinButton()
+                Wheel.SpinButton(fun () -> spin users)
             ]
           ]
         ]
